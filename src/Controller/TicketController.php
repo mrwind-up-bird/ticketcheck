@@ -13,8 +13,16 @@ use Paknahad\JsonApiBundle\Controller\Controller;
 use Paknahad\JsonApiBundle\Helper\ResourceCollection;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Validator\Constraints\DateTime;
+use WoohooLabs\Yin\JsonApi\Schema\Document\ErrorDocument;
+use WoohooLabs\Yin\JsonApi\Schema\Document\ResourceDocumentInterface;
 
 /**
+ * TicketController, handles Requests regarding ticket stuff
+ *
+ * @author Oliver Baer <oliver.baer@gmail.com>
+ * @since 2023-20-04
+ *
  * @Route("/tickets")
  */
 class TicketController extends Controller
@@ -95,5 +103,73 @@ class TicketController extends Controller
         $this->entityManager->flush();
 
         return $this->respondNoContent();
+    }
+
+    /**
+     * handles checkin on an entrance counter
+     *
+     * if ticket not used before -> setFlag scanTimestamp = currentTimestamp()
+     * if used before -> decline operation and show last checkin and checkin entrance
+     *
+     * @Route("/checkin/{ticketCode}", name="app_tickets_checkin", methods="POST")
+     *
+     * @param TicketCode $ticketCode
+     * @return Response
+     */
+    public function checkIn(string $ticketCode, TicketRepository $ticketRepository, Ticket $ticket) : Response
+    {
+        if ( $ticket->getScanTimestamp() === NULL) {
+            $data = ["success" => TRUE];
+            $ticket->setScanTimestamp(strtotime("now"));
+            $ticket->setDevice("Entrance EAST");
+
+            $ticket = $this->jsonApi()->hydrate(
+                new UpdateTicketHydrator($this->entityManager, $this->jsonApi()->getExceptionFactory()),
+                $ticket
+            );
+            dd($ticket);
+//            $this->validate($ticket);
+
+//            $this->entityManager->flush();
+
+//            return $this->respondOk(
+//                new TicketDocument(new TicketResourceTransformer()),
+//                $ticket
+//            );
+        } else {
+            $data = ["success" => FALSE, "scanTimeStamp" => $ticket->getScanTimestamp()];
+        }
+
+
+
+
+        print_r($data);
+        dd($ticket);
+
+
+
+
+        return $this->responseCheckInFailed(
+            new TicketDocument(new TicketResourceTransformer()), $ticket
+        );
+
+
+//        return $this->respondOk(
+//            new TicketDocument(new TicketResourceTransformer()),
+//            $ticket
+//        );
+    }
+
+    private function responseCheckInFailed(ResourceDocumentInterface $document, $object) : Response {
+        return $this->respond(
+            $this->jsonApi()->respond()->conflict($document, $object)
+        );
+    }
+
+
+    private function responseCheckInOk(ResourceDocumentInterface $document, $object, $meta) : Response {
+        return $this->respond(
+            $this->jsonApi()->respond()->ok($document, $object)
+        );
     }
 }
