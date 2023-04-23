@@ -1,0 +1,135 @@
+{
+    "info": {
+        "name": "json_api",
+        "schema": "https:\/\/schema.getpostman.com\/json\/collection\/v2.1.0\/collection.json"
+    },
+    "item": [
+        {
+            "name": "Ticket",
+            "description": "",
+            "item": [
+                {
+                    "name": "Ticket List",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            }
+                        ],
+                        "body": "",
+                        "url": {
+                            "raw": "{{host}}\/tickets\/",
+                            "host": [
+                                "{{host}}"
+                            ],
+                            "path": [
+                                "\/tickets",
+                                ""
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Add Ticket",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"data\": {\n        \"type\": \"tickets\",\n        \"attributes\": {\n            \"ticketId\": \"integer\",\n            \"ticketCode\": \"string\",\n            \"scanTimestamp\": \"integer\",\n            \"device\": \"string\"\n        },\n        \"relationships\": []\n    }\n}"
+                        },
+                        "url": {
+                            "raw": "{{host}}\/tickets\/",
+                            "host": [
+                                "{{host}}"
+                            ],
+                            "path": [
+                                "\/tickets",
+                                ""
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Edit Ticket",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"data\": {\n        \"type\": \"tickets\",\n        \"id\": \"1\",\n        \"attributes\": {\n            \"ticketId\": \"integer\",\n            \"ticketCode\": \"string\",\n            \"scanTimestamp\": \"integer\",\n            \"device\": \"string\"\n        },\n        \"relationships\": []\n    }\n}"
+                        },
+                        "url": {
+                            "raw": "{{host}}\/tickets\/1",
+                            "host": [
+                                "{{host}}"
+                            ],
+                            "path": [
+                                "\/tickets",
+                                "1"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Ticket",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            }
+                        ],
+                        "body": "",
+                        "url": {
+                            "raw": "{{host}}\/tickets\/1",
+                            "host": [
+                                "{{host}}"
+                            ],
+                            "path": [
+                                "\/tickets",
+                                "1"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Ticket",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application\/json"
+                            }
+                        ],
+                        "body": "",
+                        "url": {
+                            "raw": "{{host}}\/tickets\/1",
+                            "host": [
+                                "{{host}}"
+                            ],
+                            "path": [
+                                "\/tickets",
+                                "1"
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}
