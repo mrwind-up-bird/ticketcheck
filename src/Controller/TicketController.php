@@ -11,6 +11,8 @@ use App\JsonApi\Transformer\TicketResourceTransformer;
 use App\Repository\TicketRepository;
 use Paknahad\JsonApiBundle\Controller\Controller;
 use Paknahad\JsonApiBundle\Helper\ResourceCollection;
+use Psr\Http\Message\ResponseInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Validator\Constraints\DateTime;
@@ -75,37 +77,6 @@ class TicketController extends Controller
     }
 
     /**
-     * @Route("/{id}", name="app_tickets_edit", methods="PATCH")
-     */
-    public function edit(Ticket $ticket): Response
-    {
-        $ticket = $this->jsonApi()->hydrate(
-            new UpdateTicketHydrator($this->entityManager, $this->jsonApi()->getExceptionFactory()),
-            $ticket
-        );
-
-        $this->validate($ticket);
-
-        $this->entityManager->flush();
-
-        return $this->respondOk(
-            new TicketDocument(new TicketResourceTransformer()),
-            $ticket
-        );
-    }
-
-    /**
-     * @Route("/{id}", name="app_tickets_delete", methods="DELETE")
-     */
-    public function delete(Ticket $ticket): Response
-    {
-        $this->entityManager->remove($ticket);
-        $this->entityManager->flush();
-
-        return $this->respondNoContent();
-    }
-
-    /**
      * handles checkin on an entrance counter
      *
      * if ticket not used before -> setFlag scanTimestamp = currentTimestamp()
@@ -113,13 +84,15 @@ class TicketController extends Controller
      *
      * @Route("/checkin/{ticketCode}", name="app_tickets_checkin", methods="POST")
      *
-     * @param TicketCode $ticketCode
+     * @param Ticket $ticket
      * @return Response
      */
-    public function checkIn(string $ticketCode, TicketRepository $ticketRepository, Ticket $ticket) : Response
+    public function checkIn( Ticket $ticket, TicketRepository $repository) : Response
     {
         if ( $ticket->getScanTimestamp() === NULL) {
             $data = ["success" => TRUE];
+
+            $ticket = $repository->findByTicketCode($ticket->getTicketCode());
             $ticket->setScanTimestamp(strtotime("now"));
             $ticket->setDevice("Entrance EAST");
 
@@ -127,49 +100,17 @@ class TicketController extends Controller
                 new UpdateTicketHydrator($this->entityManager, $this->jsonApi()->getExceptionFactory()),
                 $ticket
             );
-            dd($ticket);
-//            $this->validate($ticket);
-
-//            $this->entityManager->flush();
-
-//            return $this->respondOk(
-//                new TicketDocument(new TicketResourceTransformer()),
-//                $ticket
-//            );
+            try {
+                $this->validate($ticket);
+                $this->entityManager->flush();
+            }
+            catch (\Exception $e) {
+                $data[] = ["error" => $e->getMessage()];
+            }
         } else {
             $data = ["success" => FALSE, "scanTimeStamp" => $ticket->getScanTimestamp()];
         }
-
-
-
-
-        print_r($data);
-        dd($ticket);
-
-
-
-
-        return $this->responseCheckInFailed(
-            new TicketDocument(new TicketResourceTransformer()), $ticket
-        );
-
-
-//        return $this->respondOk(
-//            new TicketDocument(new TicketResourceTransformer()),
-//            $ticket
-//        );
+        return new JsonResponse($data);
     }
 
-    private function responseCheckInFailed(ResourceDocumentInterface $document, $object) : Response {
-        return $this->respond(
-            $this->jsonApi()->respond()->conflict($document, $object)
-        );
-    }
-
-
-    private function responseCheckInOk(ResourceDocumentInterface $document, $object, $meta) : Response {
-        return $this->respond(
-            $this->jsonApi()->respond()->ok($document, $object)
-        );
-    }
 }
